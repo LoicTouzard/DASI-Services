@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+  <persistence-unit name="IfRoutardPU" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <class>ifroutardb3325.entites.Client</class>
+    <class>ifroutardb3325.entites.Depart</class>
+    <class>ifroutardb3325.entites.Pays</class>
+    <class>ifroutardb3325.entites.Conseiller</class>
+    <class>ifroutardb3325.entites.Voyage</class>
+    <class>ifroutardb3325.entites.Sejour</class>
+    <class>ifroutardb3325.entites.Devis</class>
+    <class>ifroutardb3325.entites.Circuit</class>
+    <properties>
+      <property name="javax.persistence.jdbc.url" value="jdbc:derby://localhost:1527/ifRoutardB3325"/>
+      <property name="javax.persistence.jdbc.password" value="ltouzard"/>
+      <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.ClientDriver"/>
+      <property name="javax.persistence.jdbc.user" value="ggouzi"/>
+      <property name="javax.persistence.schema-generation.database.action" value="create"/>
+    </properties>
+  </persistence-unit>
+</persistence>
