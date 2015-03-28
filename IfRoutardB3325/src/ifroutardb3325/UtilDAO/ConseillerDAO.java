@@ -19,7 +19,7 @@ import javax.persistence.Query;
 
 /**
  *
- * @author ltouzard
+ * @author ltouzard & ggouzi
  */
 public class ConseillerDAO {
     public static void creerConseiller(Conseiller conseiller){

@@ -19,7 +19,7 @@ import javax.persistence.OneToMany;
 
 /**
  *
- * @author ltouzard
+ * @author ltouzard & ggouzi
  */
 @Entity
 @Inheritance (strategy=InheritanceType.SINGLE_TABLE)

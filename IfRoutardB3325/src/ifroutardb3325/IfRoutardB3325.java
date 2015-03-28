@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author ltouzard
+ * @author ltouzard & ggouzi
  */
 public class IfRoutardB3325 {
 

@@ -16,7 +16,7 @@ import javax.persistence.ManyToMany;
 
 /**
  *
- * @author ltouzard
+ * @author ltouzard & ggouzi
  */
 @Entity
 public class Pays implements Serializable {

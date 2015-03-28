@@ -9,7 +9,7 @@ import javax.persistence.Entity;
 
 /**
  *
- * @author ltouzard
+ * @author ltouzard & ggouzi
  */
 @Entity
 public class Circuit extends Voyage{

@@ -16,7 +16,7 @@ import javax.persistence.OneToMany;
 
 /**
  *
- * @author ltouzard
+ * @author ltouzard & ggouzi
  */
 @Entity
 public class Conseiller implements Serializable {

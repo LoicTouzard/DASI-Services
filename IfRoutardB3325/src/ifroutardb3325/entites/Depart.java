@@ -16,7 +16,7 @@ import javax.persistence.Temporal;
 
 /**
  *
- * @author ltouzard
+ * @author ltouzard & ggouzi
  */
 @Entity
 public class Depart implements Serializable {
