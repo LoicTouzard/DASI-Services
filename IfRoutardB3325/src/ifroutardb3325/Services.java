@@ -20,6 +20,15 @@ public class Services {
     
     static final int SEJOUR=0;
     static final int CIRCUIT=1;
+
+    private CircuitDAO circuitDAO = new CircuitDAOJpa();
+    private ClientDAO clientDAO = new ClientDAOJpa();
+    private ConseillerDAO conseillerDAO = new ConseillerDAOJpa();
+    private DepartDAO departDAO = new DepartDAOJpa();
+    private DevisDAO devisDAO = new DevisDAOJpa();
+    private PaysDAO paysDAO = new PaysDAOJpa();
+    private SejourDAO sejourDAO = new SejourDAOJpa();
+    private VoyageDAO voyageDAO = new VoyageDAOJpa();
     
     //Init
     public static void init() throws Exception{
@@ -42,7 +51,7 @@ public class Services {
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        ClientDAO.creerClient(c);
+        clientDAO.creerClient(c);
         try{
             JpaUtil.validerTransaction();
         }catch(Exception e){
@@ -63,7 +72,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         try {
-            ClientDAO.supprimerClient(id);
+            clientDAO.supprimerClient(id);
             JpaUtil.validerTransaction();
         } catch (NonexistentEntityException ex) {
              JpaUtil.annulerTransaction();
@@ -82,7 +91,7 @@ public class Services {
     public static Client trouverClient(Long id){
         JpaUtil.creerEntityManager();
         
-        Client c=ClientDAO.trouverClient(id);
+        Client c=clientDAO.trouverClient(id);
         
         JpaUtil.fermerEntityManager();
         return c;
@@ -99,7 +108,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
        
         try {
-            client=ClientDAO.modifierClient(client);
+            client=clientDAO.modifierClient(client);
             JpaUtil.validerTransaction();
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
@@ -115,15 +124,10 @@ public class Services {
    * Liste tous les clients dans la base de données
    * @return liste de tous les clients présents dans la base
    */
-    
-    /**
-     * 
-     * @return 
-     */
     public static List<Client> listerClient(){
         JpaUtil.creerEntityManager();
         
-        List<Client> listeClients=ClientDAO.listerClient();
+        List<Client> listeClients=clientDAO.listerClient();
         
         JpaUtil.fermerEntityManager();
         return listeClients;
@@ -149,10 +153,10 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
          try{
-            ClientDAO.creerClient(c);
+            clientDAO.creerClient(c);
         }catch(Exception e){
            JpaUtil.annulerTransaction();
-           Client clientExisteDeja=ClientDAO.trouverClientByMail(c.getMail());
+           Client clientExisteDeja=clientDAO.trouverClientByMail(c.getMail());
            if(clientExisteDeja==null){
                JpaUtil.fermerEntityManager();
                throw e;
@@ -181,7 +185,7 @@ public class Services {
    * @return Client possédant cet adresse mail et ce mot de passe si il existe, null sinon
    */
     public static Client verifierMotDePasse(String mail, Long password){
-        Client cMail=ClientDAO.trouverClientByMail(mail);
+        Client cMail=clientDAO.trouverClientByMail(mail);
         if(cMail.getId()==password){
            return cMail;
         }
@@ -199,13 +203,13 @@ public class Services {
         JpaUtil.ouvrirTransaction();
 
         try{
-            ClientDAO.creerClient(c);
+            clientDAO.creerClient(c);
             System.out.println("Bienvenue : "+c.getPrenom()+
                    ".\n Nous vous confirmons votre inscription à l'agence IF'Routard. Votre numéro de client est : "+
                    c.getId()+".\n Votre mot de passe est : "+c.getId()+"(Pensez à modifier votre mot de passe)");
         }catch(Exception e){
            JpaUtil.annulerTransaction();
-           Client clientExisteDeja=ClientDAO.trouverClientByMail(c.getMail());
+           Client clientExisteDeja=clientDAO.trouverClientByMail(c.getMail());
            System.out.println("Bienvenue : "+clientExisteDeja.getPrenom()+
                    ".\n Votre inscription à l'agence IF'Routard a échouée. Merci de recommencer ultérieurement");
            if(clientExisteDeja==null){
@@ -237,7 +241,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         
-        ConseillerDAO.creerConseiller(conseiller);
+        conseillerDAO.creerConseiller(conseiller);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
@@ -253,7 +257,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         try {
-            ConseillerDAO.supprimerConseiller(id);
+            conseillerDAO.supprimerConseiller(id);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -272,7 +276,7 @@ public class Services {
     public static Conseiller trouverConseiller(Long id){
         JpaUtil.creerEntityManager();
         
-        Conseiller c=ConseillerDAO.trouverConseiller(id);
+        Conseiller c=conseillerDAO.trouverConseiller(id);
         
         JpaUtil.fermerEntityManager();
         return c;
@@ -289,7 +293,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         try {
-            conseiller=ConseillerDAO.modifierConseiller(conseiller);
+            conseiller=conseillerDAO.modifierConseiller(conseiller);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -312,7 +316,7 @@ public class Services {
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        VoyageDAO.creerVoyage(v);
+        voyageDAO.creerVoyage(v);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
@@ -328,7 +332,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         try {
-            VoyageDAO.supprimerVoyage(id);
+            voyageDAO.supprimerVoyage(id);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -347,7 +351,7 @@ public class Services {
     public static Voyage trouverVoyage(Long id){
         JpaUtil.creerEntityManager();
         
-        Voyage v=VoyageDAO.trouverVoyage(id);
+        Voyage v=voyageDAO.trouverVoyage(id);
         
         JpaUtil.fermerEntityManager();
         return v;
@@ -364,7 +368,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         try {
-            voyage=VoyageDAO.modifierVoyage(voyage);
+            voyage=voyageDAO.modifierVoyage(voyage);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -400,13 +404,29 @@ public class Services {
         List<Voyage> listeVoyage=new ArrayList<>();
         JpaUtil.creerEntityManager();
         
-        listeVoyage=VoyageDAO.listerVoyageComporantPays(listePays);
+        listeVoyage=voyageDAO.listerVoyageComporantPays(listePays);
         
         JpaUtil.fermerEntityManager();
         return listeVoyage;
     }
     
-    
+      
+
+   /**
+   * Liste tous les voyages dans la base de données
+   * @return liste de tous les voyages présents dans la base
+   */
+    public static List<Voyage> listerVoyage(){
+        JpaUtil.creerEntityManager();
+
+        List<Voyage> listeVoyage=voyageDAO.listerVoyages();
+
+        JpaUtil.fermerEntityManager();
+        return listeVoyage;
+    }
+
+
+
     /**
     * Trouve tous les voyages dans la base de données qui passent par tous les pays de la liste passée en paramètre.
     * On peut sélectionner les voyages selon leur type
@@ -419,7 +439,7 @@ public class Services {
         List<Voyage> listeVoyage=new ArrayList<>();
         JpaUtil.creerEntityManager();
         
-        listeVoyage=VoyageDAO.listerVoyageComporantPays(listePays, circuit, sejour);
+        listeVoyage=voyageDAO.listerVoyageComporantPays(listePays, circuit, sejour);
         
         JpaUtil.fermerEntityManager();
         return listeVoyage;
@@ -435,10 +455,10 @@ public class Services {
         List<Voyage> listeDeVoyage=null;
         
         if(typeVoyage==SEJOUR){
-            listeDeVoyage=SejourDAO.listerVoyages();
+            listeDeVoyage=sejourDAO.listerVoyages();
         }
         else if(typeVoyage==CIRCUIT){
-            listeDeVoyage=CircuitDAO.listerVoyages();
+            listeDeVoyage=circuitDAO.listerVoyages();
         }
 
         JpaUtil.fermerEntityManager();
@@ -456,7 +476,7 @@ public class Services {
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        SejourDAO.creerSejour(s);
+        sejourDAO.creerSejour(s);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
@@ -473,7 +493,7 @@ public class Services {
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        CircuitDAO.creerCircuit(c);
+        circuitDAO.creerCircuit(c);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
@@ -491,7 +511,7 @@ public class Services {
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        DepartDAO.creerDepart(d);
+        departDAO.creerDepart(d);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
@@ -507,7 +527,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         try {
-            DepartDAO.supprimerDepart(id);
+            departDAO.supprimerDepart(id);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -526,7 +546,7 @@ public class Services {
     public static Depart trouverDepart(Long id){
         JpaUtil.creerEntityManager();
         
-        Depart d=DepartDAO.trouverDepart(id);
+        Depart d=departDAO.trouverDepart(id);
         
         JpaUtil.fermerEntityManager();
         return d;
@@ -543,7 +563,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         try {
-            d=DepartDAO.modifierDepart(d);
+            d=departDAO.modifierDepart(d);
         } catch (NonexistentEntityException ex) {
              JpaUtil.annulerTransaction();
              JpaUtil.fermerEntityManager();
@@ -563,7 +583,7 @@ public class Services {
     public static List<Depart> listerProchainsDeparts(int n){
         JpaUtil.creerEntityManager();
         
-        List<Depart> listeTotale=DepartDAO.listerProchainsDeparts();
+        List<Depart> listeTotale=departDAO.listerProchainsDeparts();
         List<Depart> listeVoulue=new ArrayList<>();
         for(int i=0; i<listeTotale.size() && i<n; i++){
             listeVoulue.add(listeTotale.get(i));
@@ -587,18 +607,18 @@ public class Services {
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        Conseiller conseillerLibre=ConseillerDAO.getConseillerLibre();
+        Conseiller conseillerLibre=conseillerDAO.getConseillerLibre();
         Devis d=new Devis(nbPersonnes);
         d.setDepart(dp);
         d.setClient(c);
         d.setConseiller(conseillerLibre);
         
-        DevisDAO.creerDevis(d);
+        devisDAO.creerDevis(d);
 
         //mise a jour Client
         c.addDevis(d);
         try {
-            c=ClientDAO.modifierClient(c);
+            c=clientDAO.modifierClient(c);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -608,7 +628,7 @@ public class Services {
         //mise a jour conseiller
         conseillerLibre.addDevis(d);
         try {
-            conseillerLibre=ConseillerDAO.modifierConseiller(conseillerLibre);
+            conseillerLibre=conseillerDAO.modifierConseiller(conseillerLibre);
         } catch (NonexistentEntityException ex) {
              JpaUtil.annulerTransaction();
              JpaUtil.fermerEntityManager();
@@ -657,7 +677,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         try {
-            DevisDAO.supprimerDevis(id);
+            devisDAO.supprimerDevis(id);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -675,7 +695,7 @@ public class Services {
     public static Devis trouverDevis(Long id){
         JpaUtil.creerEntityManager();
         
-        Devis d=DevisDAO.trouverDevis(id);
+        Devis d=devisDAO.trouverDevis(id);
         
         JpaUtil.fermerEntityManager();
         return d;
@@ -692,7 +712,7 @@ public class Services {
         JpaUtil.ouvrirTransaction();
         
         try {
-            d=DevisDAO.modifierDevis(d);
+            d=devisDAO.modifierDevis(d);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -711,7 +731,7 @@ public class Services {
     public static List<Devis> listerDevis(){
         JpaUtil.creerEntityManager();
          
-        List<Devis> listeDevis=DevisDAO.listerDevis();
+        List<Devis> listeDevis=devisDAO.listerDevis();
         
         JpaUtil.fermerEntityManager();
         return listeDevis;
@@ -734,20 +754,20 @@ public class Services {
             System.out.println("Le nombre de partcipants doit être positif");
         }
         
-        Conseiller conseillerLibre=ConseillerDAO.getConseillerLibre();
+        Conseiller conseillerLibre=conseillerDAO.getConseillerLibre();
         Devis d=new Devis(nbParticipants);
         d.setDepart(dp);
         d.setClient(c);
         d.setConseiller(conseillerLibre);
         
-        DevisDAO.creerDevis(d);
+        devisDAO.creerDevis(d);
         
         System.out.println("Devis créé\n");
         
         //mise a jour Client
         c.addDevis(d);
         try {
-            c=ClientDAO.modifierClient(c);
+            c=clientDAO.modifierClient(c);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -757,7 +777,7 @@ public class Services {
         //mise a jour conseiller
         conseillerLibre.addDevis(d);
         try {
-            conseillerLibre=ConseillerDAO.modifierConseiller(conseillerLibre);
+            conseillerLibre=conseillerDAO.modifierConseiller(conseillerLibre);
         } catch (NonexistentEntityException ex) {
             JpaUtil.annulerTransaction();
             JpaUtil.fermerEntityManager();
@@ -780,7 +800,7 @@ public class Services {
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        PaysDAO.creerPays(p);
+        paysDAO.creerPays(p);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
@@ -792,7 +812,7 @@ public class Services {
     */
     public List<Pays> listerDestinations(){
         List<Pays> listeDestinations=new ArrayList<>();
-        List<Voyage> listeTousVoyages=VoyageDAO.listerVoyages();
+        List<Voyage> listeTousVoyages=voyageDAO.listerVoyages();
         for(int i=0; i<listeTousVoyages.size(); i++){
             List<Pays> listePaysVoyage=listeTousVoyages.get(i).getListePays();
             for(int j=0; j<listePaysVoyage.size(); j++){
@@ -812,7 +832,7 @@ public class Services {
     public static List<Pays> listerAllPays(){
         JpaUtil.creerEntityManager();
         
-        List<Pays> listePays=PaysDAO.listerPays();
+        List<Pays> listePays=paysDAO.listerPays();
         
         JpaUtil.fermerEntityManager();
         return listePays;
@@ -826,7 +846,7 @@ public class Services {
     public static Pays trouverPays(Long id){
         JpaUtil.creerEntityManager();
         
-        Pays p=PaysDAO.trouverPays(id);
+        Pays p=paysDAO.trouverPays(id);
         
         JpaUtil.fermerEntityManager();
         return p;

@@ -5,60 +5,25 @@
  */
 package ifroutardb3325.UtilDAO;
 
-import ifroutardb3325.entites.Client;
-import ifroutardb3325.exceptions.NonexistentEntityException;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
 import ifroutardb3325.entites.Sejour;
 import ifroutardb3325.entites.Voyage;
+import ifroutardb3325.exceptions.NonexistentEntityException;
 import java.util.List;
-import javax.persistence.Query;
 
 /**
  *
  * @author ltouzard
  */
-public class SejourDAO {
+public interface SejourDAO {
+
+    void creerSejour(Sejour sejour);
+
+    List<Voyage> listerVoyages();
+
+    Sejour modifierSejour(Sejour sejour) throws NonexistentEntityException;
+
+    void supprimerSejour(Long id) throws NonexistentEntityException;
+
+    Sejour trouverSejour(Long id);
     
-    public static void creerSejour(Sejour sejour){
-        EntityManager em = JpaUtil.obtenirEntityManager();
-        em.persist(sejour);
-    }
-    
-    public static void supprimerSejour(Long id) throws NonexistentEntityException{
-        EntityManager em = JpaUtil.obtenirEntityManager();
-        Sejour sejour;
-            try {
-                sejour = em.getReference(Sejour.class, id);
-                sejour.getId();
-            }catch(EntityNotFoundException e){
-                throw new NonexistentEntityException("The sejour with id " + id + " no longer exists.", e);
-            }
-        em.remove(sejour);
-    }
-    
-    public static Sejour modifierSejour(Sejour sejour) throws NonexistentEntityException{
-        try{
-            EntityManager em = JpaUtil.obtenirEntityManager();
-            sejour = em.merge(sejour);
-        } catch(Exception e){
-             Long id = sejour.getId();
-                if (trouverSejour(id) == null) {
-                    throw new NonexistentEntityException("The sejour with id " + id + " no longer exists.");
-                }
-        }
-        return sejour;
-    }
-    
-    public static Sejour trouverSejour(Long id){
-        EntityManager em = JpaUtil.obtenirEntityManager();
-        return em.find(Sejour.class, id);
-    }
-    
-    public static List<Voyage> listerVoyages(){
-        EntityManager em = JpaUtil.obtenirEntityManager();
-        Query query=em.createQuery("SELECT c FROM Sejour c");
-        List<Voyage> listeSejour=query.getResultList();
-        return listeSejour;
-    }
 }
