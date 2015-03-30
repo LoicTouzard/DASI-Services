@@ -16,7 +16,7 @@ import javax.persistence.Query;
 
 /**
  *
- * @author ltouzard & ggouzi
+ * @author ltouzard
  */
 public class SejourDAO {
     

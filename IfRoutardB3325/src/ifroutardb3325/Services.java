@@ -10,12 +10,11 @@ import ifroutardb3325.entites.*;
 import ifroutardb3325.UtilDAO.*;
 import ifroutardB3325.Saisie;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
  *
- * @author ltouzard & ggouzi
+ * @author ltouzard
  */
 public class Services {
     
@@ -23,7 +22,7 @@ public class Services {
     static final int CIRCUIT=1;
     
     //Init
-    public static void init(){
+    public static void init() throws Exception{
         for(int i=0; i<ClientData.CLIENTS.size(); i++){
             String[] clientString=ClientData.CLIENTS.get(i);
             Client c=new Client(clientString[0], clientString[1], clientString[2] ,clientString[4] ,clientString[5] ,clientString[6]);
@@ -34,44 +33,52 @@ public class Services {
     
     //Client
     
-    /**
-     * Ajoute un client dans la base de donnÈes
-     * @param client Client ‡ ajouter dans la base
-     */
-    public static void creerClient(Client client){
+     /**
+    * Ajoute un client dans la base de donn√©es
+    * @param c Client √† ajouter dans la base
+    * @Exception Exception si l'adresse mail est d√©j√† associ√©e √† un client dans la base
+    */
+    public static void creerClient(Client c) throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        ClientDAO.creerClient(client);
-        
-        JpaUtil.validerTransaction();
+        ClientDAO.creerClient(c);
+        try{
+            JpaUtil.validerTransaction();
+        }catch(Exception e){
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw e;
+        }
         JpaUtil.fermerEntityManager();
     }
-    
+
     /**
-     * Supprime un client de la base de donnÈes
-     * @param id Identifiant du client ‡ supprimer
-     * @exception Exception si l'id passÈ en paramËtre ne correspond ‡ aucun client
-     */
-    public static void supprimerClient(Long id){
+   * Supprime un client de la base de donn√©es
+   * @param id Identifiant du client √† supprimer
+   * @exception NonexistentEntityException si l'id pass√© en param√®tre ne correspond √† aucun client
+   */
+    public static void supprimerClient(Long id) throws NonexistentEntityException{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
         try {
             ClientDAO.supprimerClient(id);
+            JpaUtil.validerTransaction();
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levee dans Services.java : Services.supprimerClient");
+             JpaUtil.annulerTransaction();
+             JpaUtil.fermerEntityManager();
+             throw ex;
         }
-        
-        JpaUtil.validerTransaction();
+
         JpaUtil.fermerEntityManager();
     }
-    
-    /**
-     * Trouve un client dans la base de donnÈes
-     * @param id Identifiant du client ‡ trouver
-     * @return Client possÈdant l'identifiant passÈ en paramËtre
-     */
+     
+     /**
+    * Trouve un client dans la base de donn√©es
+    * @param id Identifiant du client √† trouver
+    * @return Client poss√©dant l'identifiant pass√© en param√®tre, null sinon
+    */
     public static Client trouverClient(Long id){
         JpaUtil.creerEntityManager();
         
@@ -81,31 +88,37 @@ public class Services {
         return c;
     }
 
-
     /**
-     * Modifie un client dans la base de donnÈes
-     * @param client Client que l'on souhaite mettre ‡ jour dans la base
-     * @return Client mis ‡ jour
-     * @exception Exception si le client passÈ en paramËtre n'existe pas dans la base
-     */
-    public static Client modifierClient(Client client){
+    * Modifie un client dans la base de donn√©es
+    * @param client Client que l'on souhaite mettre √† jour dans la base
+    * @return Client mis √† jour
+    * @exception NonexistentEntityException si le client pass√© en param√®tre n'existe pas dans la base
+    */
+    public static Client modifierClient(Client client) throws NonexistentEntityException{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
        
         try {
             client=ClientDAO.modifierClient(client);
+            JpaUtil.validerTransaction();
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levee dans Services.java : modifierClient");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         
-        JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
         return client;
     }
    
     /**
-     * Liste tous les clients dans la base de donnÈes
-     * @return List<Client> liste de tous les clients prÈsents dans la base
+   * Liste tous les clients dans la base de donn√©es
+   * @return liste de tous les clients pr√©sents dans la base
+   */
+    
+    /**
+     * 
+     * @return 
      */
     public static List<Client> listerClient(){
         JpaUtil.creerEntityManager();
@@ -117,13 +130,14 @@ public class Services {
     }
     
     /**
-     * CrÈation d'un client de maniËre interactive en console
-     * @return Client que l'on vient de crÈer grace aux informations fournies par l'utilisateur
-     */
-    public static Client creerClientIteractif(){
+    * Cr√©ation d'un client de mani√®re interactive en console
+    * @return Client que l'on vient de cr√©er grace aux informations fournies par l'utilisateur
+    * @exception Exception si la cr√©ation interactive √† √©chou√© (principalement car le mail existe d√©j√†)
+    */
+    public static Client creerClientIteractif() throws Exception{
         String civilite=Saisie.lireChaine("Civilite (M, Mme, Mlle) :\n");
         String nom=Saisie.lireChaine("Nom :\n");
-        String prenom=Saisie.lireChaine("Prenom :\n");
+        String prenom=Saisie.lireChaine("Pr√©nom :\n");
         String mail=Saisie.lireChaine("Mail :\n");
         String adresse=Saisie.lireChaine("Adresse postale :\n");
         String tel=Saisie.lireChaine("Telephone :\n");
@@ -134,23 +148,38 @@ public class Services {
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        ClientDAO.creerClient(c);
-      
+         try{
+            ClientDAO.creerClient(c);
+        }catch(Exception e){
+           JpaUtil.annulerTransaction();
+           Client clientExisteDeja=ClientDAO.trouverClientByMail(c.getMail());
+           if(clientExisteDeja==null){
+               JpaUtil.fermerEntityManager();
+               throw e;
+            }
+           else
+           {
+               JpaUtil.fermerEntityManager();
+               throw new Exception("Exception lev√©e dans Services.enregistrerClient() : l'email "+c.getMail()+" existe d√©j√† pour un autre Client");
+               
+           }
+        }
+         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
         
         
-        System.out.println("Client cree\n");
+        System.out.println("Client cr√©√©\n");
         return c;
 
     }
     
-    /**
-     * VÈrifie si le mot de passe est correct pour un identifiant donnÈ
-     * @param mail Adresse e-mail du client qui souhaite se connecter (son identifiant)
-     * @param password Mot de passe du client qui souhaite se connecter (son id par dÈfaut)
-     * @return Client possÈdant cet adresse mail et ce mot de passe si il existe, renvoie null sinon
-     */
+   /**
+   * V√©rifie si le mot de passe est correct pour un identifiant donn√©
+   * @param mail Adresse e-mail du client qui souhaite se connecter (son identifiant)
+   * @param password Mot de passe du client qui souhaite se connecter (son id par d√©faut)
+   * @return Client poss√©dant cet adresse mail et ce mot de passe si il existe, null sinon
+   */
     public static Client verifierMotDePasse(String mail, Long password){
         Client cMail=ClientDAO.trouverClientByMail(mail);
         if(cMail.getId()==password){
@@ -159,39 +188,54 @@ public class Services {
         return null;
     }
     
-    /** 
-     * Simule l'envoi du mail d'inscription (en cas de succËs ou d'echec)
-     * @param Client client que l'on souhaite inscrire (enregistrer dans la base de donnÈes)
-     * @return Client ce mÍme client que celui passÈ en paramËtre
-     */
-    public static Client enregistrerClient(Client client){
+    /**
+    * Simule l'envoi du mail d'inscription (en cas de succ√®s ou d'echec)
+    * @param c client que l'on souhaite inscrire (enregistrer dans la base de donn√©es)
+    * @return le client pass√© en param√®tre
+    * @Exception Exception si la cr√©ation a √©chou√©
+    */
+    public static Client enregistrerClient(Client c) throws Exception{
         JpaUtil.creerEntityManager();
-         
-        Client clientExisteDeja=ClientDAO.trouverClientByMail(client.getMail());
-        if(clientExisteDeja==null){
-           System.out.println("Bienvenue : "+client.getPrenom()+
-                   ".\n Nous vous confirmons votre inscription ‡† l'agence IF'Routard. Votre numÈro de client est : "+
-                   client.getId()+".\n Votre mot de passe est : "+client.getId()+"(Pensez ‡† modifier votre mot de passe)");
+        JpaUtil.ouvrirTransaction();
 
-        }
-        else{
-            System.out.println("Bienvenue : "+client.getPrenom()+
-                   ".\n Votre inscription ‡† l'agence IF'Routard a ÈchouÈe. Merci de recommencer ultÈrieurement");
+        try{
+            ClientDAO.creerClient(c);
+            System.out.println("Bienvenue : "+c.getPrenom()+
+                   ".\n Nous vous confirmons votre inscription √† l'agence IF'Routard. Votre num√©ro de client est : "+
+                   c.getId()+".\n Votre mot de passe est : "+c.getId()+"(Pensez √† modifier votre mot de passe)");
+        }catch(Exception e){
+           JpaUtil.annulerTransaction();
+           Client clientExisteDeja=ClientDAO.trouverClientByMail(c.getMail());
+           System.out.println("Bienvenue : "+clientExisteDeja.getPrenom()+
+                   ".\n Votre inscription √† l'agence IF'Routard a √©chou√©e. Merci de recommencer ult√©rieurement");
+           if(clientExisteDeja==null){
+               JpaUtil.fermerEntityManager();
+               throw e;
+            }
+           else
+           {
+               JpaUtil.fermerEntityManager();
+               throw new Exception("Exception lev√©e dans Services.enregistrerClient() : l'email "+c.getMail()+" existe d√©j√† pour un autre Client");
+           }
+           
         }
         
+        JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
-        return client;
+        return c;
     }
     
     
     //Conseiller
+    
     /**
-     * Ajoute un conseiller dans la base de donnÈes
-     * @param conseiller Conseiller ‡ ajouter dans la base
-     */
+    * Ajoute un conseiller dans la base de donn√©es
+    * @param conseiller Conseiller √† ajouter dans la base
+    */
     public static void creerConseiller(Conseiller conseiller) {
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
+        
         
         ConseillerDAO.creerConseiller(conseiller);
         
@@ -199,30 +243,32 @@ public class Services {
         JpaUtil.fermerEntityManager();
     }
     
-    /**
-     * Supprime un conseiller de la base de donnÈes
-     * @param id Identifiant du conseiller ‡ supprimer
-     * @exception Exception si l'id passÈ en paramËtre ne correspond ‡ aucun conseiller
-     */
-    public static void supprimerConseiller(Long id){
+   /**
+   * Supprime un conseiller de la base de donn√©es
+   * @param id Identifiant du conseiller √† supprimer
+   * @exception Exception si l'id pass√© en param√®tre ne correspond √† aucun conseiller
+   */
+    public static void supprimerConseiller(Long id) throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
         try {
             ConseillerDAO.supprimerConseiller(id);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levÈe dans Services.java : Services.supprimerConseiller");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
     }
     
-    /**
-     * Trouve un conseiller dans la base de donnÈes
-     * @param id Identifiant du conseiller ‡ supprimer
-     * @return Conseiller possÈdant l'identifiant passÈ en paramËtre
-     */
+     /**
+    * Trouve un conseiller dans la base de donn√©es
+    * @param id Identifiant du conseiller √† supprimer
+    * @return Conseiller poss√©dant l'identifiant pass√© en param√®tre, null s'il n'est pas trouv√©
+    */
     public static Conseiller trouverConseiller(Long id){
         JpaUtil.creerEntityManager();
         
@@ -231,21 +277,23 @@ public class Services {
         JpaUtil.fermerEntityManager();
         return c;
     }
-     
+ 
     /**
-     * Modifie un conseiller dans la base de donnÈes
-     * @param conseiller Conseiller que l'on souhaite mettre ‡ jour dans la base
-     * @return Conseiller mis ‡ jour
-     * @exception Exception si le conseiller passÈ en paramËtre n'existe pas dans la base
-     */
-    public static Conseiller modifierConseiller(Conseiller conseiller){
+    * Modifie un conseiller dans la base de donn√©es
+    * @param conseiller Conseiller que l'on souhaite mettre √† jour dans la base
+    * @return Conseiller mis √† jour
+    * @exception Exception si le conseiller pass√© en param√®tre n'existe pas dans la base
+    */
+    public static Conseiller modifierConseiller(Conseiller conseiller)throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
         try {
             conseiller=ConseillerDAO.modifierConseiller(conseiller);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levÈe dans Services.java : Services.modifierConseiller");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         
         JpaUtil.validerTransaction();
@@ -255,44 +303,47 @@ public class Services {
      
      
     //Voyage
-    /**
-     * Ajoute un voyage dans la base de donnÈes
-     * @param voyage Voyage ‡ ajouter dans la base
-     */
-    public static void creerVoyage(Voyage voyage){
+    
+     /**
+    * Ajoute un voyage dans la base de donn√©es
+    * @param v Voyage √† ajouter dans la base
+    */
+    public static void creerVoyage(Voyage v){
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        VoyageDAO.creerVoyage(voyage);
+        VoyageDAO.creerVoyage(v);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
     }
-     
+ 
     /**
-     * Supprime un voyage de la base de donnÈes
-     * @param id Identifiant du voyage ‡ supprimer
-     * @exception Exception si l'id passÈ en paramËtre ne correspond ‡ aucun voyage
-     */
-    public static void supprimerVoyage(Long id){
+    * Supprime un voyage de la base de donn√©es
+    * @param id Identifiant du voyage √† supprimer
+    * @exception Exception si l'id pass√© en param√®tre ne correspond √† aucun voyage
+    */
+    public static void supprimerVoyage(Long id)throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
         try {
             VoyageDAO.supprimerVoyage(id);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levÈe dans Services.java : Services.supprimerVoyage");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
-    }     
-    
-    /**
-     * Trouve un voyage dans la base de donnÈes
-     * @param id Identifiant du voyage ‡ supprimer
-     * @return Voyage possÈdant l'identifiant passÈ en paramËtre
-     */
+    }
+   
+     /**
+    * Trouve un voyage dans la base de donn√©es
+    * @param id Identifiant du voyage √† supprimer
+    * @return Voyage poss√©dant l'identifiant pass√© en param√®tre, null s'il n'est pas trouv√©
+    */
     public static Voyage trouverVoyage(Long id){
         JpaUtil.creerEntityManager();
         
@@ -302,50 +353,84 @@ public class Services {
         return v;
     }
      
-    
-    /**
-     * Modifie un voyage dans la base de donnÈes
-     * @param voyage Voyage que l'on souhaite mettre ‡ jour dans la base
-     * @return Voyage mis ‡ jour
-     * @exception Exception si le voyage passÈ en paramËtre n'existe pas dans la base
-     */
-    public static Voyage modifierVoyage(Voyage voyage){
+     /**
+    * Modifie un voyage dans la base de donn√©es
+    * @param voyage Voyage que l'on souhaite mettre √† jour dans la base
+    * @return Voyage mis √† jour
+    * @exception Exception si le voyage pass√© en param√®tre n'existe pas
+    */
+    public static Voyage modifierVoyage(Voyage voyage) throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
         try {
             voyage=VoyageDAO.modifierVoyage(voyage);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levÈe dans Services.java : Services.modifierVoyage");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
         return voyage;
     }
-      
-   
+    
     /**
-     * Trouve tous les voyages dans la base de donnÈes qui passent par tous les pays de la liste passÈe en paramËtre
-     * @param listePays Liste de pays dont ou souhaite connaitre les voyages associÈs.
-     * @return List<Voyage> Liste des voyages qui passent par tous les pays de la liste de pays
-     */
-    public static List<Voyage> trouverVoyageParPays(List<Pays> listePays){
-        List<Voyage> listeVoyage=new ArrayList<Voyage>();
+    * Trouve tous les voyages qui se d√©roulent dans le pays pass√© en param√®tre
+    * @param p pays dont on souhaite connaitre tous les voyages s'y d√©roulant
+    * @return Liste des voyages passant par ce pays, null sinon
+    */
+    public static List<Voyage> trouverVoyageDuPays(Pays p){
         JpaUtil.creerEntityManager();
         
-        VoyageDAO.listerVoyageComporantPays(listePays);
+        List<Voyage> listeDeVoyage=p.getListeVoyage();
+        
+        JpaUtil.fermerEntityManager();
+        return listeDeVoyage;
+    }
+    
+    
+    /**
+    * Trouve tous les voyages dans la base de donn√©es qui passent par tous les pays de la liste pass√©e en param√®tre
+    * @param listePays Liste de pays dont ou souhaite connaitre les voyages associ√©s.
+    * @return Liste des voyages qui passent par tous les pays de la liste de pays
+    */
+    public static List<Voyage> trouverVoyageParPays(List<Pays> listePays){
+        List<Voyage> listeVoyage=new ArrayList<>();
+        JpaUtil.creerEntityManager();
+        
+        listeVoyage=VoyageDAO.listerVoyageComporantPays(listePays);
         
         JpaUtil.fermerEntityManager();
         return listeVoyage;
     }
     
+    
     /**
-     * Liste tous les voyages de type TypeVoyage
-     * @param typeVoyage Entier correspondant au type de voyage (Circuit ou SÈjour)
-     * @return List<Voyage> liste des voyages du mÍme type (Circuit ou SÈjour). Renvoi une liste nulle si un autre paramËtre diffÈrent est passÈ.
-     */
-    public static List<Voyage> listerVoyage(int typeVoyage){
+    * Trouve tous les voyages dans la base de donn√©es qui passent par tous les pays de la liste pass√©e en param√®tre.
+    * On peut s√©lectionner les voyages selon leur type
+    * @param listePays Liste de pays dont ou souhaite connaitre les voyages associ√©s.
+    * @param circuit true si on veut r√©up√©r√©rer les circuits, false sinon
+    * @param sejour true si on veut r√©up√©r√©rer les s√©jours, false sinon
+    * @return Liste des voyages qui passent par tous les pays de la liste de pays et qui sont du(des) type(s) demand√©(s)
+    */ 
+    public static List<Voyage> trouverVoyageParPaysEtType(List<Pays> listePays, boolean circuit, boolean sejour){
+        List<Voyage> listeVoyage=new ArrayList<>();
+        JpaUtil.creerEntityManager();
+        
+        listeVoyage=VoyageDAO.listerVoyageComporantPays(listePays, circuit, sejour);
+        
+        JpaUtil.fermerEntityManager();
+        return listeVoyage;
+    }
+
+    /**
+    * Liste tous les voyages de type TypeVoyage
+    * @param typeVoyage Entier correspondant au type de voyage (Circuit=0, S√©jour=1)
+    * @return Liste des voyages du m√™me type (Circuit ou S√©jour). Renvoi une liste nulle si un autre param√®tre diff√©rent est pass√© ou si aucun voyage n'est de ce type.
+    */
+    public static List<Voyage> trouverVoyageParType(int typeVoyage){
         JpaUtil.creerEntityManager();
         List<Voyage> listeDeVoyage=null;
         
@@ -360,82 +445,84 @@ public class Services {
         return listeDeVoyage;
     }
     
-    /**
-     * Ajoute un Sejour dans la base de donnÈes
-     * @param sejour Sejour ‡ ajouter dans la base
-     */
-    public static void creerSejour(Sejour sejour){
+    
+    //Sejour
+    
+     /**
+    * Ajoute un Sejour dans la base de donn√©es
+    * @param s Sejour √† ajouter dans la base
+    */
+    public static void creerSejour(Sejour s){
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        SejourDAO.creerSejour(sejour);
+        SejourDAO.creerSejour(s);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
     }
      
    
-    /**
-     * Ajoute un Circuit dans la base de donnÈes
-     * @param circuit Circuit ‡ ajouter dans la base
-     */
-    
-    
     //Circuit
-    public static void creerCircuit(Circuit circuit){
+    
+     /**
+    * Ajoute un Circuit dans la base de donn√©es
+    * @param c Circuit √† ajouter dans la base
+    */
+    public static void creerCircuit(Circuit c){
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        CircuitDAO.creerCircuit(circuit);
+        CircuitDAO.creerCircuit(c);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
     }
     
     
-    //Devis
     
+    //Depart
     
-    
-  	//Depart
-    /**
-     * Ajoute un Depart dans la base de donnÈes
-     * @param depart Depart ‡ ajouter dans la base
-     */
-    public static void creerDepart(Depart depart){
+     /**
+    * Ajoute un Depart dans la base de donn√©es
+    * @param d Depart √† ajouter dans la base
+    */
+    public static void creerDepart(Depart d){
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        DepartDAO.creerDepart(depart);
+        DepartDAO.creerDepart(d);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
     }
-
-    /**
-     * Supprime un depart de la base de donnÈes
-     * @param id Identifiant du depart ‡ supprimer
-     * @exception Exception si l'id passÈ en paramËtre ne correspond ‡ aucun depart
-     */
-    public static void supprimerDepart(Long id){
+     
+     /**
+    * Supprime un depart de la base de donn√©es
+    * @param id Identifiant du depart √† supprimer
+    * @exception Exception si l'id pass√© en param√®tre ne correspond √† aucun depart
+    */
+    public static void supprimerDepart(Long id)throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
         try {
             DepartDAO.supprimerDepart(id);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levÈe dans Services.java : Services.supprimerDepart");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
     }
-    
-    /**
-     * Trouve un depart dans la base de donnÈes
-     * @param id Identifiant du depart ‡ supprimer
-     * @return Depart possÈdant l'identifiant passÈ en paramËtre
-     */
+     
+     /**
+    * Trouve un depart dans la base de donn√©es
+    * @param id Identifiant du depart √† supprimer
+    * @return Depart poss√©dant l'identifiant pass√© en param√®tre, null s'il n'est pas trouv√©
+    */
     public static Depart trouverDepart(Long id){
         JpaUtil.creerEntityManager();
         
@@ -444,56 +531,94 @@ public class Services {
         JpaUtil.fermerEntityManager();
         return d;
     }
-
-    /**
-     * Modifie un depart dans la base de donnÈes
-     * @param depart Depart que l'on souhaite mettre ‡ jour dans la base
-     * @return Depart mis ‡ jour
-     * @exception Exception si le depart passÈ en paramËtre n'existe pas dans la base
-     */
-    public static Depart modifierDepart(Depart depart){
+     
+     /**
+    * Modifie un depart dans la base de donn√©es
+    * @param d Depart que l'on souhaite mettre √† jour dans la base
+    * @return Depart mis √† jour
+    * @exception Exception si le depart pass√© en param√®tre n'existe pas dans la base
+    */
+    public static Depart modifierDepart(Depart d)throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
         try {
-            d=DepartDAO.modifierDepart(depart);
+            d=DepartDAO.modifierDepart(d);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levÈe dans Services.java : Services.modifierDepart");
+             JpaUtil.annulerTransaction();
+             JpaUtil.fermerEntityManager();
+             throw ex;
         }
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
-        return depart;
+        return d;
     }
 
-    /**
-     * Liste tous les clients dans la base de donnÈes
-     * @param n Nombre de dÈparts contenus dans la liste ‡ retourner
-     * @return List<Depart> liste des departs ayant une date supÈrieure ‡ la date d'aujourd'hui et triÈe par date (de la plus proche ‡ la plus lointaine)
-     */
+     /**
+    * Liste tous les clients dans la base de donn√©es
+    * @param n Nombre de d√©parts contenus dans la liste √† retourner
+    * @return Liste des departs ayant une date sup√©rieure √† la date d'aujourd'hui et tri√©e par date (de la plus proche √† la plus lointaine)
+    */
     public static List<Depart> listerProchainsDeparts(int n){
         JpaUtil.creerEntityManager();
         
         List<Depart> listeTotale=DepartDAO.listerProchainsDeparts();
-        List<Depart> listeVoulue=new ArrayList<Depart>();
+        List<Depart> listeVoulue=new ArrayList<>();
         for(int i=0; i<listeTotale.size() && i<n; i++){
             listeVoulue.add(listeTotale.get(i));
         }
         JpaUtil.fermerEntityManager();
         return listeVoulue;
     }
-
-    /**
-     * Ajoute un Devis dans la base de donnÈes et simule l'envoi du mail contenant toutes les informations relatives ‡ ce devis
-     * @param devis Devis ‡ ajouter dans la base
-     */
-    public static void creerDevis(Devis devis){
+    
+    
+    //Devis
+    
+     /**
+    * Ajoute un Devis dans la base de donn√©es et simule l'envoi du mail contenant toutes les informations relatives √† ce devis
+    * @param c Client associ√© au Devis
+    * @param dp Depart associ√© au Devis
+    * @param nbPersonnes Nombre de participants du voyage
+    * @return Devis que l'on vient de cr√©er
+    * @exception Exception lev√©e si une erreur s'est produite
+    */
+    public static Devis creerDevis(Client c, Depart dp, int nbPersonnes) throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        DevisDAO.creerDevis(devis);
-        Voyage v=devis.getVoyage();
-        Conseiller c=devis.getConseiller();
+        Conseiller conseillerLibre=ConseillerDAO.getConseillerLibre();
+        Devis d=new Devis(nbPersonnes);
+        d.setDepart(dp);
+        d.setClient(c);
+        d.setConseiller(conseillerLibre);
+        
+        DevisDAO.creerDevis(d);
+
+        //mise a jour Client
+        c.addDevis(d);
+        try {
+            c=ClientDAO.modifierClient(c);
+        } catch (NonexistentEntityException ex) {
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
+        }
+        
+        //mise a jour conseiller
+        conseillerLibre.addDevis(d);
+        try {
+            conseillerLibre=ConseillerDAO.modifierConseiller(conseillerLibre);
+        } catch (NonexistentEntityException ex) {
+             JpaUtil.annulerTransaction();
+             JpaUtil.fermerEntityManager();
+             throw ex;
+        }
+        
+        JpaUtil.validerTransaction();
+        JpaUtil.fermerEntityManager();
+
+        Voyage v=d.getVoyage();
 
         System.out.println("Votre conseiller pour le voyage : "+c.getNom()+" "+c.getPrenom()+"("+c.getMail()+")");
         System.out.println("Votre voyage :"+v.getNom()+". ");
@@ -511,43 +636,42 @@ public class Services {
             System.out.println(cr.getType()+"("+cr.getDuree()+", "+cr.getKilometrage()+", "+cr.getTransport()+"\n");
         }
         
-        System.out.println("DÈpart : le "+devis.getDate().getYear()+1900+"/"+devis.getDate().getMonth()+1+"/"+devis.getDate().getDate()+" de "+devis.getDepart().getVille());
-        System.out.println("Transport : "+devis.getDepart().getTransport());
-        System.out.println(devis.getVoyage().getDescription()+"\n");
+        System.out.println("D√©part : le "+d.getDate().getYear()+1900+"/"+d.getDate().getMonth()+1+"/"+d.getDate().getDate()+" de "+d.getDepart().getVille());
+        System.out.println("Transport : "+d.getDepart().getTransport());
+        System.out.println(d.getVoyage().getDescription()+"\n");
         System.out.println("----------------------");
-        System.out.println("Nombre de personnes : "+devis.getNbPersonnes());
-        System.out.println("Tarif par personne : "+devis.getDepart().getPrix());
-        System.out.println("TOTAL : "+devis.getPrixTotal());
-                
-        JpaUtil.validerTransaction();
-        JpaUtil.fermerEntityManager();
+        System.out.println("Nombre de personnes : "+d.getNbPersonnes());
+        System.out.println("Tarif par personne : "+d.getDepart().getPrix());
+        System.out.println("TOTAL : "+d.getPrixTotal());
+        
+        return d;
     }
     
-   
     /**
-     * Supprime un devis de la base de donnÈes
-     * @param id Identifiant du depart ‡ supprimer
-     * @exception Exception si l'id passÈ en paramËtre ne correspond ‡ aucun devis
-     */
-    public static void supprimerDevis(Long id){
+    * Supprime un devis de la base de donn√©es
+    * @param id Identifiant du depart √† supprimer
+    * @exception Exception si l'id pass√© en param√®tre ne correspond √† aucun devis
+    */
+    public static void supprimerDevis(Long id)throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
         try {
             DevisDAO.supprimerDevis(id);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levÈe dans Services.java : Services.supprimerDevis");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
     }
-    
-    /**
-     * Trouve un devis dans la base de donnÈes
-     * @param id Identifiant du devis ‡ supprimer
-     * @return Devis possÈdant l'identifiant passÈ en paramËtre
-     */
-     
+
+     /**
+    * Trouve un devis dans la base de donn√©es
+    * @param id Identifiant du devis √† supprimer
+    * @return Devis poss√©dant l'identifiant pass√© en param√®tre, null s'il n'est pas trouv√©
+    */
     public static Devis trouverDevis(Long id){
         JpaUtil.creerEntityManager();
         
@@ -557,21 +681,22 @@ public class Services {
         return d;
     }
      
-    
-    /**
-     * Modifie un devis dans la base de donnÈes
-     * @param devis Devis que l'on souhaite mettre ‡ jour dans la base
-     * @return Devis mis ‡ jour
-     * @exception Exception si le devis passÈ en paramËtre n'existe pas dans la base
-     */
-    public static Devis modifierDevis(Devis d){
+     /**
+    * Modifie un devis dans la base de donn√©es
+    * @param d Devis que l'on souhaite mettre √† jour dans la base
+    * @return Devis mis √† jour
+    * @exception Exception si le devis pass√© en param√®tre n'existe pas dans la base
+    */
+    public static Devis modifierDevis(Devis d)throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
         try {
             d=DevisDAO.modifierDevis(d);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception levÈe dans Services.java : Services.modifierDevis");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         
         JpaUtil.validerTransaction();
@@ -579,11 +704,10 @@ public class Services {
         return d;
     }
 
-    
     /**
-     * Liste tous les devis
-     * @return List<Devis> liste de tous les devis 
-     */
+    * Liste tous les devis
+    * @return Liste de tous les devis
+    */
     public static List<Devis> listerDevis(){
         JpaUtil.creerEntityManager();
          
@@ -593,16 +717,16 @@ public class Services {
         return listeDevis;
     }
     
-    /**
-     * CrÈation d'un devis de maniËre interactive en console
-     * @return Devis que l'on vient de crÈer grace aux informations fournies par l'utilisateur
-     */
-    
-    public static Devis creerDevisIteractif(Client c, Depart dp){
+     /**
+    * Cr√©ation d'un devis de mani√®re interactive en console
+    * @param c Client cr√©ant le devis
+    * @param dp Depart associ√© au Devis
+    * @return Devis que l'on vient de cr√©er grace aux informations fournies par l'utilisateur
+    * @exception Exception si une erreur s'est produite
+    */
+    public static Devis creerDevisIteractif(Client c, Depart dp) throws Exception{
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
-        
-        Date date=Saisie.lireDate("Date :\n");
         
         //nombre de participants
         int nbParticipants=0;
@@ -611,7 +735,7 @@ public class Services {
         }
         
         Conseiller conseillerLibre=ConseillerDAO.getConseillerLibre();
-        Devis d=new Devis(date, nbParticipants);
+        Devis d=new Devis(nbParticipants);
         d.setDepart(dp);
         d.setClient(c);
         d.setConseiller(conseillerLibre);
@@ -625,7 +749,9 @@ public class Services {
         try {
             c=ClientDAO.modifierClient(c);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception lev√©e dans Services.java : Services.modifierClient");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         
         //mise a jour conseiller
@@ -633,7 +759,9 @@ public class Services {
         try {
             conseillerLibre=ConseillerDAO.modifierConseiller(conseillerLibre);
         } catch (NonexistentEntityException ex) {
-             System.err.println("Exception lev√©e dans Services.java : Services.modifierConseiller");
+            JpaUtil.annulerTransaction();
+            JpaUtil.fermerEntityManager();
+            throw ex;
         }
         
         JpaUtil.validerTransaction();
@@ -644,43 +772,26 @@ public class Services {
     
     //Pays
     
-    //PAYS
-    /**
-     * Ajoute un Pays dans la base de donnÈes
-     * @param pays Pays ‡ ajouter dans la base
-     */
-    public static void creerPays(Pays pays){
+     /**
+    * Ajoute un Pays dans la base de donn√©es
+    * @param p Pays √† ajouter dans la base
+    */
+    public static void creerPays(Pays p){
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
         
-        PaysDAO.creerPays(pays);
+        PaysDAO.creerPays(p);
         
         JpaUtil.validerTransaction();
         JpaUtil.fermerEntityManager();
     }
     
-    /**
-     * Liste tous les voyages qui se dÈroulent dans le pays passÈ en paramËtre
-     * @param Pays pays dont on souhaite connaitre tous les voyages s'y dÈroulant
-     * @return List<Voyage> liste des voyages passant par ce pays.
-     */
-
-    public static List<Voyage> listerVoyage(Pays pays){
-        JpaUtil.creerEntityManager();
-        
-        List<Voyage> listeDeVoyage=pays.getListeVoyage();
-        
-        JpaUtil.fermerEntityManager();
-        return listeDeVoyage;
-    }
-    
-    /**
-     * Liste tous les pays que l'on peut visiter (dont au moins un voyage s'y dÈroule)
-     * @return List<Pays> liste des pays que l'on peut aller visiter
-     */
-    
+     /**
+    * Liste tous les pays que l'on peut visiter (dont au moins un voyage s'y d√©roule)
+    * @return Liste des pays que l'on peut aller visiter
+    */
     public List<Pays> listerDestinations(){
-        List<Pays> listeDestinations=new ArrayList<Pays>();
+        List<Pays> listeDestinations=new ArrayList<>();
         List<Voyage> listeTousVoyages=VoyageDAO.listerVoyages();
         for(int i=0; i<listeTousVoyages.size(); i++){
             List<Pays> listePaysVoyage=listeTousVoyages.get(i).getListePays();
@@ -690,14 +801,14 @@ public class Services {
                 }
             }
         }
+        
         return listeDestinations;
     }
     
-    /**
-     * Liste tous les pays (y compris ce qui n'ont pas de voyage associÈ)
-     * @return List<Pays> liste de tous les pays de la base
-     */
-    
+     /**
+    * Liste tous les pays (y compris ce qui n'ont pas de voyage associ√©)
+    * @return Liste de tous les pays de la base
+    */
     public static List<Pays> listerAllPays(){
         JpaUtil.creerEntityManager();
         
@@ -706,13 +817,12 @@ public class Services {
         JpaUtil.fermerEntityManager();
         return listePays;
     }
-    
-    /**
-     * Trouve un pays dans la base de donnÈes
-     * @param id Identifiant du pays ‡ supprimer
-     * @return Pays possÈdant l'identifiant passÈ en paramËtre
-     */
 
+     /**
+    * Trouve un pays dans la base de donn√©es
+    * @param id Identifiant du pays √† supprimer
+    * @return Pays poss√©dant l'identifiant pass√© en param√®tre, null s'il n'est pas trouv√©
+    */
     public static Pays trouverPays(Long id){
         JpaUtil.creerEntityManager();
         
@@ -721,4 +831,5 @@ public class Services {
         JpaUtil.fermerEntityManager();
         return p;
     }
+
 }

@@ -16,7 +16,7 @@ import javax.persistence.Temporal;
 
 /**
  *
- * @author ltouzard & ggouzi
+ * @author ltouzard
  */
 @Entity
 public class Devis implements Serializable {
@@ -43,14 +43,14 @@ public class Devis implements Serializable {
         
     }
 
-    public Devis(Date date, int nbPersonnes) {
-        this.dateCreation = date;
+    public Devis(int nbPersonnes) {
+        this.dateCreation = new Date();
         this.nbPersonnes = nbPersonnes;
     }
     
-    public Devis(Long id, Date date, int nbPersonnes) {
+    public Devis(Long id, int nbPersonnes) {
         this.id = id;
-        this.dateCreation = date;
+        this.dateCreation = new Date();
         this.nbPersonnes = nbPersonnes;
     }
 

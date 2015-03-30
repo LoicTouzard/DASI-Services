@@ -17,7 +17,7 @@ import javax.persistence.OneToMany;
 
 /**
  *
- * @author ltouzard & ggouzi
+ * @author ltouzard
  */
 @Entity
 public class Client implements Serializable {
